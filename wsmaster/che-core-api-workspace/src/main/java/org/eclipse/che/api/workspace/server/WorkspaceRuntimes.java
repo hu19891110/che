@@ -19,15 +19,19 @@ import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.ServerException;
 import org.eclipse.che.api.core.model.machine.Machine;
 import org.eclipse.che.api.core.model.machine.MachineConfig;
+import org.eclipse.che.api.core.model.machine.MachineLogMessage;
 import org.eclipse.che.api.core.model.machine.MachineStatus;
 import org.eclipse.che.api.core.model.workspace.WorkspaceRuntime;
 import org.eclipse.che.api.core.model.workspace.WorkspaceStatus;
 import org.eclipse.che.api.core.notification.EventService;
 import org.eclipse.che.api.core.notification.EventSubscriber;
+import org.eclipse.che.api.core.util.LineConsumer;
+import org.eclipse.che.api.core.util.WebsocketMessageConsumer;
 import org.eclipse.che.api.machine.server.MachineManager;
 import org.eclipse.che.api.machine.server.exception.MachineException;
 import org.eclipse.che.api.machine.server.model.impl.MachineConfigImpl;
 import org.eclipse.che.api.machine.server.model.impl.MachineImpl;
+import org.eclipse.che.api.machine.server.model.impl.MachineLogMessageImpl;
 import org.eclipse.che.api.machine.shared.dto.event.MachineStatusEvent;
 import org.eclipse.che.api.workspace.server.model.impl.EnvironmentImpl;
 import org.eclipse.che.api.workspace.server.model.impl.WorkspaceImpl;
@@ -164,7 +168,7 @@ public class WorkspaceRuntimes {
      * @throws ServerException
      *         when component {@link #isPreDestroyInvoked is stopped} or any
      *         other error occurs during environment start
-     * @see MachineManager#createMachineSync(MachineConfig, String, String)
+     * @see MachineManager#createMachineSync(MachineConfig, String, String, org.eclipse.che.api.core.util.LineConsumer)
      * @see WorkspaceStatus#STARTING
      * @see WorkspaceStatus#RUNNING
      */
@@ -574,12 +578,15 @@ public class WorkspaceRuntimes {
                                      boolean recover) throws ServerException,
                                                              NotFoundException,
                                                              ConflictException {
+
+        LineConsumer machineLogger = getMachineLogger(workspaceId, config.getName());
+
         MachineImpl machine;
         try {
             if (recover) {
-                machine = machineManager.recoverMachine(config, workspaceId, envName);
+                machine = machineManager.recoverMachine(config, workspaceId, envName, machineLogger);
             } else {
-                machine = machineManager.createMachineSync(config, workspaceId, envName);
+                machine = machineManager.createMachineSync(config, workspaceId, envName, machineLogger);
             }
         } catch (ConflictException x) {
             // The conflict is because of the already running machine
@@ -612,6 +619,13 @@ public class WorkspaceRuntimes {
             throw new IllegalArgumentException(x.getLocalizedMessage(), x);
         }
         return machine;
+    }
+
+    protected LineConsumer getMachineLogger(String workspaceId, String machineName) throws ServerException {
+        WebsocketMessageConsumer<MachineLogMessage> envMessageConsumer = new WebsocketMessageConsumer<>("workspace:" +
+                                                                                                        workspaceId +
+                                                                                                        ":environment_output");
+        return line -> envMessageConsumer.write(new MachineLogMessageImpl(machineName, line));
     }
 
     /**
