@@ -23,7 +23,6 @@ import org.eclipse.che.api.promises.client.PromiseError;
 import org.eclipse.che.ide.api.workspace.WorkspaceReadyEvent;
 import org.eclipse.che.ide.api.workspace.WorkspaceReadyEvent.WorkspaceReadyHandler;
 import org.eclipse.che.ide.api.workspace.event.WorkspaceStoppedEvent;
-import org.eclipse.che.ide.api.workspace.event.WorkspaceStoppedHandler;
 import org.eclipse.che.ide.api.action.Action;
 import org.eclipse.che.ide.api.action.ActionEvent;
 import org.eclipse.che.ide.api.action.ActionManager;
@@ -52,7 +51,7 @@ import java.util.Set;
  */
 @Singleton
 public class AppStateManager implements WindowActionHandler,
-                                        WorkspaceStoppedHandler,
+                                        WorkspaceStoppedEvent.Handler,
                                         WsAgentStateHandler,
                                         WorkspaceReadyHandler {
 

@@ -157,6 +157,7 @@ public class ConsolesPanelPresenterTest {
 
         when(machineService.getProcesses(anyString())).thenReturn(processesPromise);
         when(processesPromise.then(Matchers.<Operation<List<MachineProcessDto>>>anyObject())).thenReturn(processesPromise);
+        when(commandConsoleFactory.create(anyString())).thenReturn(mock(OutputConsole.class));
 
         presenter =
                 new ConsolesPanelPresenter(view, eventBus, dtoFactory, dialogFactory, entityFactory, terminalFactory, commandConsoleFactory,
@@ -204,7 +205,7 @@ public class ConsolesPanelPresenterTest {
 
         verify(outputConsole).listenToOutput(eq(OUTPUT_CHANNEL));
         verify(outputConsole).attachToProcess(machineProcessDto);
-        verify(workspaceAgent).setActivePart(eq(presenter));
+        verify(workspaceAgent, times(2)).setActivePart(eq(presenter));
     }
 
     @Test
@@ -219,7 +220,7 @@ public class ConsolesPanelPresenterTest {
 
         when(appContext.getWorkspaceId()).thenReturn("workspaceID");
         DevMachineStateEvent devMachineStateEvent = mock(DevMachineStateEvent.class);
-        verify(eventBus, times(4)).addHandler(anyObject(), devMachineStateHandlerCaptor.capture());
+        verify(eventBus, times(5)).addHandler(anyObject(), devMachineStateHandlerCaptor.capture());
 
         DevMachineStateEvent.Handler devMachineStateHandler = devMachineStateHandlerCaptor.getAllValues().get(0);
         devMachineStateHandler.onDevMachineStarted(devMachineStateEvent);
@@ -263,7 +264,7 @@ public class ConsolesPanelPresenterTest {
         verify(view, times(2)).selectNode(anyObject());
         verify(view).setProcessesData(anyObject());
         verify(view).getNodeById(anyString());
-        verify(view).setStopButtonVisibility(anyString(), anyBoolean());
+        verify(view, times(2)).setStopButtonVisibility(anyString(), anyBoolean());
     }
 
     @Test
@@ -365,7 +366,7 @@ public class ConsolesPanelPresenterTest {
         verify(terminal).setVisible(eq(true));
         verify(terminal).connect();
         verify(terminal).setListener(anyObject());
-        verify(view).setStopButtonVisibility(anyString(), eq(false));
+        verify(view, times(3)).setStopButtonVisibility(anyString(), eq(false));
     }
 
     @Test
@@ -580,16 +581,19 @@ public class ConsolesPanelPresenterTest {
 
     @Test
     public void shouldCloseTerminal() throws Exception {
-        TerminalPresenter terminal = mock(TerminalPresenter.class);
         ProcessTreeNode machineNode = mock(ProcessTreeNode.class);
-        ProcessTreeNode terminalNode = mock(ProcessTreeNode.class);
         when(machineNode.getId()).thenReturn(MACHINE_ID);
+
+        TerminalPresenter terminal = mock(TerminalPresenter.class);
+
+        ProcessTreeNode terminalNode = mock(ProcessTreeNode.class);
+        when(terminalNode.getId()).thenReturn(PROCESS_ID);
+
         List<ProcessTreeNode> children = new ArrayList<>();
         children.add(machineNode);
         presenter.rootNode = new ProcessTreeNode(ROOT_NODE, null, null, null, children);
         presenter.terminals.put(PROCESS_ID, terminal);
 
-        when(terminalNode.getId()).thenReturn(PROCESS_ID);
         when(view.getNodeIndex(anyString())).thenReturn(0);
         when(machineNode.getChildren()).thenReturn(children);
         when(terminalNode.getParent()).thenReturn(machineNode);

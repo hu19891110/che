@@ -28,7 +28,6 @@ import org.eclipse.che.ide.api.machine.MachineServiceClient;
 import org.eclipse.che.ide.api.parts.PerspectiveManager;
 import org.eclipse.che.ide.api.workspace.WorkspaceServiceClient;
 import org.eclipse.che.ide.dto.DtoFactory;
-import org.eclipse.che.ide.extension.machine.client.machine.console.MachineConsolePresenter;
 import org.eclipse.che.ide.rest.DtoUnmarshallerFactory;
 import org.eclipse.che.ide.ui.loaders.initialization.InitialLoadingInfo;
 import org.eclipse.che.ide.websocket.MessageBusProvider;
@@ -66,9 +65,6 @@ public class MachineManagerImplTest {
 
     @Mock
     private WorkspaceServiceClient workspaceServiceClient;
-
-    @Mock
-    private MachineConsolePresenter machineConsolePresenter;
 
     @Mock
     private MachineStatusNotifier machineStatusNotifier;
