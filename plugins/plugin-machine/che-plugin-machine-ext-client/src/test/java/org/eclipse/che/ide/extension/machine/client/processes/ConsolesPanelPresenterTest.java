@@ -159,6 +159,8 @@ public class ConsolesPanelPresenterTest {
         when(processesPromise.then(Matchers.<Operation<List<MachineProcessDto>>>anyObject())).thenReturn(processesPromise);
         when(commandConsoleFactory.create(anyString())).thenReturn(mock(OutputConsole.class));
 
+        when(appContext.getWorkspaceId()).thenReturn("workspaceID");
+
         presenter =
                 new ConsolesPanelPresenter(view, eventBus, dtoFactory, dialogFactory, entityFactory, terminalFactory, commandConsoleFactory,
                                            commandTypeRegistry, workspaceAgent, notificationManager, localizationConstant,
@@ -226,7 +228,7 @@ public class ConsolesPanelPresenterTest {
         devMachineStateHandler.onDevMachineStarted(devMachineStateEvent);
 
         verify(machineService).getMachines(eq(WORKSPACE_ID));
-        verify(machinesPromise, times(2)).then(machinesCaptor.capture());
+        verify(machinesPromise).then(machinesCaptor.capture());
         machinesCaptor.getValue().apply(machines);
         verify(view).setProcessesData(anyObject());
     }
