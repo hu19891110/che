@@ -28,7 +28,7 @@ import org.eclipse.che.ide.api.notification.NotificationManager;
 import org.eclipse.che.ide.api.notification.StatusNotification;
 import org.eclipse.che.ide.collections.Jso;
 import org.eclipse.che.ide.dto.DtoFactory;
-import org.eclipse.che.ide.ext.java.client.event.DependencyUpdatedEvent;
+import org.eclipse.che.ide.project.ResolvingProjectStateHolder;
 import org.eclipse.che.plugin.maven.client.comunnication.progressor.background.BackgroundLoaderPresenter;
 import org.eclipse.che.plugin.maven.shared.MavenAttributes;
 import org.eclipse.che.plugin.maven.shared.MessageType;
@@ -46,6 +46,8 @@ import java.util.List;
 import java.util.Set;
 
 import static org.eclipse.che.ide.api.notification.StatusNotification.DisplayMode.EMERGE_MODE;
+import static org.eclipse.che.ide.project.ResolvingProjectStateHolder.ResolvingProjectState.IN_PROGRESS;
+import static org.eclipse.che.ide.project.ResolvingProjectStateHolder.ResolvingProjectState.RESOLVED;
 
 /**
  * Handler which receives messages from the maven server.
@@ -56,12 +58,13 @@ import static org.eclipse.che.ide.api.notification.StatusNotification.DisplayMod
 @Singleton
 public class MavenMessagesHandler {
 
-    private final EventBus                  eventBus;
-    private final NotificationManager       notificationManager;
-    private final ProjectServiceClient      projectServiceClient;
-    private final AppContext                context;
-    private final BackgroundLoaderPresenter dependencyResolver;
-    private final PomEditorReconciler       pomEditorReconciler;
+    private final EventBus                    eventBus;
+    private final NotificationManager         notificationManager;
+    private final ProjectServiceClient        projectServiceClient;
+    private final AppContext                  context;
+    private final BackgroundLoaderPresenter   dependencyResolver;
+    private final PomEditorReconciler         pomEditorReconciler;
+    private final ResolvingProjectStateHolder resolvingProjectStateHolder;
 
     @Inject
     public MavenMessagesHandler(EventBus eventBus,
@@ -71,14 +74,15 @@ public class MavenMessagesHandler {
                                 AppContext context,
                                 BackgroundLoaderPresenter dependencyResolver,
                                 PomEditorReconciler pomEditorReconciler,
-                                WsAgentStateController agentStateController) {
+                                WsAgentStateController agentStateController,
+                                ResolvingProjectStateHolder resolvingProjectStateHolder) {
         this.eventBus = eventBus;
-
         this.notificationManager = notificationManager;
         this.projectServiceClient = projectServiceClient;
         this.context = context;
         this.dependencyResolver = dependencyResolver;
         this.pomEditorReconciler = pomEditorReconciler;
+        this.resolvingProjectStateHolder = resolvingProjectStateHolder;
 
         handleOperations(factory, agentStateController);
     }
@@ -134,9 +138,10 @@ public class MavenMessagesHandler {
 
     private void handleStartStop(StartStopNotification dto) {
         if (dto.isStart()) {
+            resolvingProjectStateHolder.setState(IN_PROGRESS);
             dependencyResolver.show();
         } else {
-            eventBus.fireEvent(new DependencyUpdatedEvent());
+            resolvingProjectStateHolder.setState(RESOLVED);
             dependencyResolver.hide();
         }
     }
