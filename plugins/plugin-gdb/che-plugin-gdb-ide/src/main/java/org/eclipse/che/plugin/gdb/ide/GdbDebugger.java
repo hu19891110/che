@@ -15,6 +15,7 @@ import com.google.inject.Inject;
 import com.google.web.bindery.event.shared.EventBus;
 
 import org.eclipse.che.api.debug.shared.model.Location;
+import org.eclipse.che.commons.annotation.Nullable;
 import org.eclipse.che.ide.api.app.AppContext;
 import org.eclipse.che.ide.api.debug.BreakpointManager;
 import org.eclipse.che.ide.api.debug.DebuggerServiceClient;
@@ -28,7 +29,6 @@ import org.eclipse.che.ide.dto.DtoFactory;
 import org.eclipse.che.ide.util.storage.LocalStorageProvider;
 import org.eclipse.che.ide.websocket.MessageBusProvider;
 import org.eclipse.che.plugin.debugger.ide.debug.AbstractDebugger;
-import org.eclipse.che.plugin.debugger.ide.fqn.FqnResolverFactory;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -55,10 +55,8 @@ public class GdbDebugger extends AbstractDebugger {
                        LocalStorageProvider localStorageProvider,
                        MessageBusProvider messageBusProvider,
                        EventBus eventBus,
-                       FqnResolverFactory fqnResolverFactory,
                        GdbDebuggerFileHandler activeFileHandler,
                        DebuggerManager debuggerManager,
-                       FileTypeRegistry fileTypeRegistry,
                        BreakpointManager breakpointManager,
                        AppContext appContext) {
 
@@ -67,10 +65,8 @@ public class GdbDebugger extends AbstractDebugger {
               localStorageProvider,
               messageBusProvider,
               eventBus,
-              fqnResolverFactory,
               activeFileHandler,
               debuggerManager,
-              fileTypeRegistry,
               breakpointManager,
               ID);
         this.appContext = appContext;
@@ -93,6 +89,7 @@ public class GdbDebugger extends AbstractDebugger {
         return singletonList(location.getTarget());
     }
 
+    @Nullable
     @Override
     protected String pathToFqn(VirtualFile file) {
         return file.getName();
