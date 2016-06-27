@@ -22,7 +22,7 @@ export class AddRegistryController {
    */
   constructor($mdDialog, cheProfile, cheNotification) {
     this.$mdDialog = $mdDialog;
-    this.cheProfile = cheProfile;
+    this.chePreferences = chePreferences;
     this.cheNotification = cheNotification;
   }
 
@@ -41,7 +41,7 @@ export class AddRegistryController {
       return;
     }
 
-    let promise = this.cheProfile.addRegistry(this.registryUrl, this.registryUserName, this.registryUserPassword);
+    let promise = this.chePreferences.addRegistry(this.registryUrl, this.registryUserName, this.registryUserPassword);
 
     promise.then(() => {
       this.$mdDialog.hide();
