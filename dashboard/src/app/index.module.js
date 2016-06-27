@@ -85,9 +85,9 @@ initModule.config(['$routeProvider', ($routeProvider) => {
 var DEV = false;
 
 
-// config routes
-initModule.config(['$routeProvider', ($routeProvider) => {
-  // add demo page
+// configs
+initModule.config(['$routeProvider', 'ngClipProvider', ($routeProvider, ngClipProvider) => {
+  // config routes (add demo page)
   if (DEV) {
     $routeProvider.accessWhen('/demo-components', {
       templateUrl: 'app/demo-components/demo-components.html',
@@ -95,7 +95,8 @@ initModule.config(['$routeProvider', ($routeProvider) => {
       controllerAs: 'demoComponentsCtrl'
     });
   }
-
+  //add .swf path location using ngClipProvider
+  ngClipProvider.setPath('dashboard/assets/flash/ZeroClipboard.swf');
 }]);
 
 
@@ -190,7 +191,6 @@ initModule.factory('ETagInterceptor', ($window, $cookies, $q) => {
     }
   };
 });
-
 
 initModule.config(($mdThemingProvider, jsonColors) => {
 
